@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block titulo %}Calculadora de separación{% endblock %}
+{% block contenido %}
+  <header>
+    <h1>Separación de antenas en diversidad de espacio</h1>
+    <p>Rec. ITU-R P.530-19, § 6.2.1, ecuaciones (151) y (152)</p>
+  </header>
+
+  <section>
+    <h2>Geometría del enlace</h2>
+    <svg width="100%" viewBox="0 55 680 380" role="img" aria-label="Diagrama del enlace con rayo directo y reflejado, alturas h1 y h2, distancias d1, d2 y d, y separación S entre antena main y diversidad">
+      <defs>
+        <marker id="flecha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <rect class="agua" x="40" y="320" width="600" height="12" rx="2"/>
+      <line class="torre" x1="110" y1="138" x2="110" y2="320"/>
+      <line class="torre" x1="500" y1="109" x2="500" y2="163"/>
+      <line class="torre" x1="500" y1="179" x2="500" y2="320"/>
+      <line class="rayo" x1="120" y1="130" x2="490" y2="100"/>
+      <path class="rayo ref" d="M120 130 L291 320 L490 100"/>
+      <circle cx="291" cy="320" r="4.5" style="fill: var(--text)"/>
+      <rect class="ant-main" x="102" y="122" width="16" height="16" rx="3"/>
+      <rect class="ant-main" x="492" y="93" width="16" height="16" rx="3"/>
+      <rect class="ant-div" x="492" y="163" width="16" height="16" rx="3"/>
+      <text class="tit" x="110" y="108" text-anchor="middle">Sitio 1</text>
+      <text class="tit" x="500" y="78" text-anchor="middle">Sitio 2</text>
+      <text class="lbl-main" x="520" y="105">Antena main</text>
+      <text class="lbl-div" x="520" y="175">Diversidad</text>
+      <text class="sec" x="300" y="96" text-anchor="middle">Rayo directo</text>
+      <text class="sec" x="142" y="284">Rayo reflejado</text>
+      <text class="sec" x="302" y="350">Punto de reflexión</text>
+      <line class="cota" x1="85" y1="132" x2="85" y2="318" marker-start="url(#flecha)" marker-end="url(#flecha)"/>
+      <text class="var" x="78" y="230" text-anchor="end">h<tspan font-size="11" dy="4">1</tspan></text>
+      <line class="cota" x1="465" y1="103" x2="465" y2="318" marker-start="url(#flecha)" marker-end="url(#flecha)"/>
+      <text class="var" x="458" y="250" text-anchor="end">h<tspan font-size="11" dy="4">2</tspan></text>
+      <line class="cota-s" x1="610" y1="103" x2="610" y2="169" marker-start="url(#flecha)" marker-end="url(#flecha)"/>
+      <text class="var txt-s" x="619" y="140">S</text>
+      <text id="svg-s" class="txt-s" x="619" y="160" font-size="12">–</text>
+      <line class="cota" x1="112" y1="364" x2="289" y2="364" marker-start="url(#flecha)" marker-end="url(#flecha)"/>
+      <text class="var" x="200" y="384" text-anchor="middle">d<tspan font-size="11" dy="4">1</tspan></text>
+      <line class="cota" x1="293" y1="364" x2="498" y2="364" marker-start="url(#flecha)" marker-end="url(#flecha)"/>
+      <text class="var" x="395" y="384" text-anchor="middle">d<tspan font-size="11" dy="4">2</tspan></text>
+      <line class="cota" x1="112" y1="402" x2="498" y2="402" marker-start="url(#flecha)" marker-end="url(#flecha)"/>
+      <text x="305" y="422" text-anchor="middle" font-size="14"><tspan class="var">d</tspan> (largo total del enlace)</text>
+    </svg>
+  </section>
+
+  <section>
+    <h2>Datos del enlace</h2>
+    <form id="form" class="grid" autocomplete="off" onsubmit="return false">
+      <label class="campo">d: largo del enlace (km)
+        <input id="d" type="number" value="40" step="0.1" min="0">
+      </label>
+      <label class="campo">f: frecuencia (GHz)
+        <input id="f" type="number" value="6" step="0.1" min="0">
+      </label>
+      <label class="campo">h1: altura de la antena del sitio 1 sobre el agua o suelo (m)
+        <input id="h1" type="number" value="60" step="1" min="0">
+      </label>
+      <label class="campo">d1: del sitio 1 al punto de reflexión (km)
+        <input id="d1" type="number" value="15" step="0.1" min="0">
+      </label>
+      <label class="campo">k: factor de radio efectivo de la Tierra
+        <select id="k">
+          <option value="4/3" selected>4/3 (normal)</option>
+          <option value="2/3">2/3</option>
+          <option value="1">1</option>
+          <option value="inf">∞</option>
+        </select>
+      </label>
+    </form>
+    <p id="error" class="error" role="alert"></p>
+  </section>
+
+  <section>
+    <h2>Resultado</h2>
+    <div class="grid">
+      <div class="tarjeta"><div class="etq">Corrección por curvatura</div><div class="val" id="o-corr">–</div></div>
+      <div class="tarjeta"><div class="etq">Altura efectiva de h1</div><div class="val" id="o-hef">–</div></div>
+      <div class="tarjeta"><div class="etq">θ: distancia entre mínimos</div><div class="val" id="o-theta">–</div></div>
+      <div class="tarjeta destacada"><div class="etq">Separación S = θ/2</div><div class="val" id="o-s">–</div></div>
+    </div>
+    <p class="nota">Otras separaciones óptimas (ec. 152): <strong id="o-opt">–</strong>. Conviene la más chica, porque se mantiene buena en el rango más amplio de k.</p>
+  </section>
+
+  <section>
+    <h2>Cómo cambia con k</h2>
+    <table>
+      <thead><tr><th>k</th><th>Altura efectiva</th><th>θ</th><th>S = θ/2</th></tr></thead>
+      <tbody id="tabla-k"></tbody>
+    </table>
+    <p class="nota">La P.530 recomienda diseñar con el k mediano (normalmente 4/3) y elegir la separación mínima óptima.</p>
+  </section>
+
+  <section>
+    <h2>Fórmulas</h2>
+    <div class="formula">θ<sub>2</sub> = 150 · d / [ f · ( h<sub>1</sub> − d<sub>1</sub><sup>2</sup> / 12.74k ) ] &nbsp; [m] &nbsp;&nbsp; ec. (151)</div>
+    <div class="formula">S = θ/2, 3θ/2, 5θ/2, … &nbsp; [m] &nbsp;&nbsp; ec. (152)</div>
+    <div class="formula">S<sub>2</sub> = 75 · d / [ f · ( h<sub>1</sub> − d<sub>1</sub><sup>2</sup> / (12.74 · k) ) ] &nbsp; [m]</div>
+    <p class="nota">Para el sitio 1 se reemplazan h<sub>1</sub> y d<sub>1</sub> por h<sub>2</sub> y d<sub>2</sub>. Si el trayecto no tiene una reflexión especular clara, la ec. (151) no aplica y la altura de la antena de diversidad sale del criterio de despeje de § 2.2.2.2.</p>
+  </section>
+
+  <footer>Basado en la Recomendación UIT-R P.530-19 (09/2025). Herramienta de apoyo; verifica el diseño con el perfil real del trayecto.</footer>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='calculadora.js') }}"></script>
+{% endblock %}

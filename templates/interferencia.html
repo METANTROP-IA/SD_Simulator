@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block titulo %}Simulador de interferencia{% endblock %}
+{% block contenido %}
+  <header>
+    <h1>Interferencia en la torre: espejo de Lloyd</h1>
+    <p>El agua actúa como espejo: la antena del sitio 1 y su imagen bajo la superficie se comportan como las dos rendijas del experimento de Young.</p>
+  </header>
+
+  <section>
+    <svg width="100%" viewBox="0 0 680 335" role="img" aria-label="Antena del sitio 1, su imagen bajo el agua y franjas de interferencia en la torre del sitio 2">
+      <defs>
+        <marker id="flecha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <rect class="agua" x="70" y="210" width="510" height="6" rx="2"/>
+      <text class="sec" x="430" y="238" text-anchor="middle">Agua: actúa como espejo</text>
+      <rect id="fondoTorre" x="548" width="20" fill="#2C2C2A"/>
+      <g id="franjas"></g>
+      <line id="torre2" class="torre" x1="570" x2="570" y2="210"/>
+      <text id="sitio2" class="tit" x="560" text-anchor="middle">Sitio 2</text>
+      <line id="rDir" class="rayo" stroke-width="1.3"/>
+      <line id="rRef1" class="rayo ref" stroke-width="1.3"/>
+      <line id="rRef2" class="rayo ref" stroke-width="1.3"/>
+      <line id="rVirt" class="virtual"/>
+      <line id="cota" class="cota" x1="50" x2="50" marker-start="url(#flecha)" marker-end="url(#flecha)"/>
+      <text class="var" x="44" y="214" text-anchor="end">2h<tspan font-size="11" dy="4">1</tspan></text>
+      <circle id="fuente" class="ant-main" cx="90" r="7"/>
+      <circle id="imagen" class="imagen" cx="90" r="7"/>
+      <text id="fuenteL" class="tit" x="90" text-anchor="middle">Sitio 1</text>
+      <text id="imagenL" class="sec" x="90" text-anchor="middle">Antena imagen</text>
+      <rect id="antMain" class="ant-main" x="564" width="12" height="12" rx="2"/>
+      <rect id="antDiv" class="ant-div" x="564" width="12" height="12" rx="2"/>
+      <text id="mainL" class="lbl-main" x="584" dominant-baseline="central">Main</text>
+      <text id="divL" class="lbl-div" x="584" dominant-baseline="central">Diversidad</text>
+    </svg>
+
+    <div class="control">
+      <label for="k">k (refracción atmosférica)</label>
+      <input type="range" id="k" min="0.6" max="4" step="0.001" value="1.33">
+      <span class="valor" id="kv">1.33</span>
+    </div>
+    <div class="control">
+      <label for="rho">Fuerza de la reflexión (ρ)</label>
+      <input type="range" id="rho" min="0" max="1" step="0.05" value="0.9">
+      <span class="valor" id="rhov">0.90</span>
+    </div>
+    <div class="acciones">
+      <button id="animar" type="button">Variar k automáticamente</button>
+      <button id="limpiar" type="button">Borrar historial</button>
+    </div>
+    <p id="error" class="error" role="alert"></p>
+  </section>
+
+  <section>
+    <div class="grid">
+      <div class="tarjeta"><div class="etq">Distancia entre franjas θ</div><div class="val" id="oTheta">–</div></div>
+      <div class="tarjeta main"><div class="etq">Señal en main</div><div class="val" id="oMain">–</div></div>
+      <div class="tarjeta div"><div class="etq">Señal en diversidad</div><div class="val" id="oDiv">–</div></div>
+      <div class="tarjeta destacada"><div class="etq">Mejor de las dos</div><div class="val" id="oMejor">–</div></div>
+    </div>
+    <p class="nota">Señal en dB respecto del rayo directo solo. Separación de diseño S = θ/2 con k = 4/3: <strong id="oS">–</strong>.</p>
+  </section>
+
+  <section>
+    <h2>Señal en el tiempo</h2>
+    <canvas id="historial" aria-label="Historial de la señal en main y diversidad"></canvas>
+    <div class="leyenda"><span class="l-main">Main</span><span class="l-div">Diversidad</span><span class="l-mejor">Mejor de las dos</span></div>
+    <p class="nota">Activa “Variar k automáticamente” o mueve k: cuando la main cae en una franja oscura, la diversidad casi nunca cae al mismo tiempo.</p>
+  </section>
+
+  <section>
+    <h2>Escenario</h2>
+    <form id="escenario" class="grid" autocomplete="off" onsubmit="return false">
+      <label class="campo">d: largo del enlace (km)<input id="d" type="number" step="0.1" min="0"></label>
+      <label class="campo">f: frecuencia (GHz)<input id="f" type="number" step="0.1" min="0"></label>
+      <label class="campo">h1: antena del sitio 1 sobre el agua (m)<input id="h1" type="number" step="1" min="0"></label>
+      <label class="campo">d1: sitio 1 al punto de reflexión (km)<input id="d1" type="number" step="0.1" min="0"></label>
+      <label class="campo">h2: antena main del sitio 2 (m)<input id="h2" type="number" step="0.1" min="0"></label>
+    </form>
+    <div class="acciones"><button id="restaurar" type="button">Restaurar ejemplo</button></div>
+    <p class="nota">La antena de diversidad se ubica automáticamente a S = θ/2 (calculada con k = 4/3) por debajo de la main.</p>
+  </section>
+
+  <footer>Modelo de dos rayos sobre superficie lisa, basado en la Rec. UIT-R P.530-19 § 6.2.1. Herramienta didáctica.</footer>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='interferencia.js') }}"></script>
+{% endblock %}

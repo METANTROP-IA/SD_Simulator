@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Simulador SD{% endblock %} · P.530-19</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <p class="marca">Diversidad de espacio · Rec. ITU-R P.530-19</p>
+  <nav class="pestanas">
+    <a href="{{ url_for('calculadora') }}" class="{{ 'activa' if activa == 'calculadora' else '' }}">Calculadora de separación</a>
+    <a href="{{ url_for('interferencia') }}" class="{{ 'activa' if activa == 'interferencia' else '' }}">Simulador de interferencia</a>
+  </nav>
+  {% block contenido %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>
